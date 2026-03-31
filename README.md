@@ -31,8 +31,8 @@ This code accompanies the results presented in the associated research paper.
 Clone the repository:
 
 ```bash
-git clone <your-repo-url>
-cd <repo-name>
+git clone git@github.com:ktempestuous/latent_space_visualiser_weather_models.git
+cd latent_space_visualiser_weather_models
 ```
 
 Create a virtual environment (recommended):
