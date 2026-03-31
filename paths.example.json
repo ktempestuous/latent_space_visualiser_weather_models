@@ -1,0 +1,8 @@
+{
+  "graphcast_small": {
+    "latent_dir": "./demo_data/graphcast_small/latent_data",
+    "translator_dir": "./demo_data/graphcast_small/translators",
+    "era5_basepath": "./demo_data/graphcast_small/era5",
+    "graph_coords_filepath": "./demo_data/graphcast_small/mesh_nodes.npy"
+  }
+}
