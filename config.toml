@@ -1,0 +1,78 @@
+[theme]
+base = "light"
+showSidebarBorder = true
+baseFontSize = 16
+baseFontWeight = 400
+
+chartCategoricalColors = [
+  "#5E7F65", "#7FA37F", "#A3B18A", "#D9CBB3", "#8C6F5A",
+  "#73956C", "#B7C9A1", "#4F6F57", "#CBB89D", "#35523A"
+]
+
+chartSequentialColors = [
+  "#FBF8F1",
+  "#F3EEE3",
+  "#E7EFD9",
+  "#D8E4C8",
+  "#C9D8B6",
+  "#B7C9A1",
+  "#A3B18A",
+  "#8FAA7A",
+  "#73956C",
+  "#5E7F65"
+]
+
+chartDivergingColors = [
+  "#4B2E2A", "#7A4A3A", "#B26D52", "#D9A98B", "#F3DDD0",
+  "#E8F0DE", "#BED0AF", "#8FAA7A", "#5E7F65", "#35523A"
+]
+
+[theme.light]
+font = "sans-serif"
+headingFont = "sans-serif"
+codeFont = "monospace"
+primaryColor = "#5E7F65"
+backgroundColor = "#FBF8F1"
+secondaryBackgroundColor = "#F3EEE3"
+textColor = "#1C241D"
+linkColor = "#4F6F57"
+codeTextColor = "#1C241D"
+codeBackgroundColor = "#ECE7DC"
+baseRadius = "0.5rem"
+buttonRadius = "0.5rem"
+borderColor = "#DDD5C7"
+dataframeBorderColor = "#DDD5C7"
+dataframeHeaderBackgroundColor = "#ECE7DC"
+showWidgetBorder = true
+
+[theme.light.sidebar]
+backgroundColor = "#F6F1E6"
+secondaryBackgroundColor = "#ECE7DC"
+textColor = "#1C241D"
+primaryColor = "#5E7F65"
+borderColor = "#DDD5C7"
+
+[theme.dark]
+font = "sans-serif"
+headingFont = "sans-serif"
+codeFont = "monospace"
+primaryColor = "#E6D8BE"
+backgroundColor = "#102019"
+secondaryBackgroundColor = "#1A2B22"
+textColor = "#F3EBDD"
+linkColor = "#DCCEB3"
+codeTextColor = "#F3EBDD"
+codeBackgroundColor = "#16241D"
+baseRadius = "0.5rem"
+buttonRadius = "0.5rem"
+borderColor = "#314238"
+dataframeBorderColor = "#314238"
+dataframeHeaderBackgroundColor = "#22342A"
+showWidgetBorder = true
+
+[theme.dark.sidebar]
+backgroundColor = "#0D1813"
+secondaryBackgroundColor = "#16241D"
+textColor = "#F3EBDD"
+primaryColor = "#E6D8BE"
+borderColor = "#314238"

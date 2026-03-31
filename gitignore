@@ -1,0 +1,31 @@
+# Ignore archive folder
+archive/
+
+# Ignore plots folder
+plots/
+demo_data/
+
+# Ignore virt env
+lvenv/
+venv/
+
+# Ignore all Jupyter notebooks
+*.ipynb
+
+# (Optional but common) Jupyter checkpoint folders
+.ipynb_checkpoints/
+
+__pycache__/
+
+# Local path / machine-specific config
+paths.json
+
+# Streamlit local state
+.streamlit/secrets.toml
+
+# Large outputs / generated reports
+*.pdf
+outputs/
+exports/
+tmp/
+
