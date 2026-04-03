@@ -114,7 +114,7 @@ Changes will automatically propagate through the app.
 
 ## Data Requirements
 
-This application requires external data, a sample of which is included.
+This application requires external data, a sample of which is included at https://syncandshare.lrz.de/getlink/fiKpbQtFvZChe1yfM7PqaX/demo_data.
 
 Required data:
 
