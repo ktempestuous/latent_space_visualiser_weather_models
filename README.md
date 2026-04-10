@@ -31,7 +31,7 @@ This code accompanies the results presented in the associated research paper.
 Clone the repository:
 
 ```bash
-git clone git@github.com:ktempestuous/latent_space_visualiser_weather_models.git
+git clone https://github.com/ktempestuous/latent_space_visualiser_weather_models.git
 cd latent_space_visualiser_weather_models
 ```
 
