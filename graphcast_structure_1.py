@@ -1,6 +1,5 @@
 # Graphcast structure 1 functions #
 import streamlit as st
-from app_config import *
 import re
 import os
 import pandas as pd
@@ -23,6 +22,12 @@ def get_available_months_gc_1(model_cfg):
     return sorted(set(months))
 
 def get_available_times_gc_1(year, month, model_cfg):
+    if year is None or month is None:
+        raise ValueError(
+            f"Invalid year/month passed to get_available_times_gc_1: "
+            f"year={year}, month={month}"
+        )
+
     start_time = pd.Timestamp(year, month, 1, 12, 0, tz="UTC")
 
     if month == 12:

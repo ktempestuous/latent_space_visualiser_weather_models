@@ -263,13 +263,29 @@ graph_coords_filepath = model_cfg["graph_coords_filepath"]
 
 available_months = get_available_months(model_cfg)
 
+if not available_months:
+    st.error(
+        "No latent files found. Check paths.json and make sure latent_dir "
+        "contains files named like latent_mesh_step_<step>_<year>_<month>.npz"
+    )
+    st.stop()
+
 years = sorted({y for y, m in available_months})
 selected_year = st.sidebar.selectbox("Select Year", years)
 
 months = sorted({m for y, m in available_months if y == selected_year})
+
+if not months:
+    st.error(f"No months found for selected year {selected_year}.")
+    st.stop()
+
 selected_month = st.sidebar.selectbox("Select Month", months, format_func=lambda m: month_name[m])
 
 times = get_available_times(selected_year, selected_month, model_cfg)
+if len(times) == 0:
+    st.error(f"No forecast times found for {selected_year}-{selected_month:02d}.")
+    st.stop()
+
 formatted_times = [t.strftime("%Y-%m-%d %H UTC") for t in times]
 selected_flt_time_label = st.sidebar.selectbox("Select latent forecast time", formatted_times)
 selected_flt_time = times[formatted_times.index(selected_flt_time_label)]
