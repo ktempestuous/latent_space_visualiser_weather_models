@@ -18,7 +18,7 @@ CONFIG_PATH = Path("paths.json")
 def load_paths():
     if not CONFIG_PATH.exists():
         raise FileNotFoundError(
-            "Missing paths.json. Copy paths.example.json to paths.json and edit it."
+            "Missing paths.example.json. Copy paths.example.json to paths.json and edit it."
         )
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
