@@ -376,8 +376,15 @@ if st.session_state.get("era5_ready", False):
     st.sidebar.markdown("## Step 2 Settings")
     selected_var = st.sidebar.selectbox("Select variable", all_vars, key="selected_var")
 
-    data_fit = ds_pair[selected_var].isel(time=0)
-    data_flt = ds_pair[selected_var].isel(time=1)
+    var_da = ds_pair[selected_var]
+
+    # Time handling
+    if "time" in var_da.dims:
+        data_fit = var_da.isel(time=0)
+        data_flt = var_da.isel(time=1) 
+    else:
+        data_fit = var_da
+        data_flt = var_da
 
     # Level selection if exists
     level_dim = None
@@ -528,6 +535,8 @@ def _compute_step3_results():
     if len(indices) == 0:
         st.session_state["latent_t_filtered"] = None
         st.session_state["top_channels_idx"] = None
+        st.session_state["step3_done"] = False
+        st.warning("No mesh nodes were found inside the selected area.")
         return
 
     latent_t_filtered = latent_out[:, indices, :]  # (proc_steps, selected_nodes, latent_dim)
@@ -550,6 +559,14 @@ def _render_step3_outputs():
     latent_t_filtered = st.session_state.get("latent_t_filtered", None)
     top_channels_idx = st.session_state.get("top_channels_idx", None)
     N_top = st.session_state.get("N_top",None)
+
+    if top_channels_idx is None or len(top_channels_idx) == 0:
+        st.warning(
+            "No top latent channels are available. "
+            "Please run Step 3 again or adjust the selected region."
+        )
+        st.session_state["step3_done"] = False
+        return
 
     if indices is None or len(indices) == 0:
         st.warning("No mesh nodes selected in Step 3. Please select a circle region first.")
@@ -665,6 +682,7 @@ Extract latent representations for whole globe. Identify those in selected regio
         float(st.session_state.get("overlay_lat")),
         float(st.session_state.get("overlay_lon")),
         float(st.session_state.get("overlay_radius")),
+        int(st.session_state.get("N_top")),
     )
 
     if st.button("Extract latent data", key="step3_button"):
@@ -672,7 +690,18 @@ Extract latent representations for whole globe. Identify those in selected regio
             k: v for k, v in st.session_state.get("export_figures", {}).items()
             if k in ["fig_era", "fig_res"]
         }
-        if st.session_state.get("step3_signature") != step3_signature:
+
+        cached_step3_ok = (
+            st.session_state.get("latent_t_filtered") is not None
+            and st.session_state.get("top_channels_idx") is not None
+            and st.session_state.get("selected_nodes") is not None
+            and len(st.session_state.get("selected_nodes")) > 0
+        )
+
+        if (
+            st.session_state.get("step3_signature") != step3_signature
+            or not cached_step3_ok
+        ):
             st.session_state["step3_signature"] = step3_signature
             _compute_step3_results()
         else:
@@ -708,6 +737,11 @@ Compare the selected region with the rest of the globe using cosine similarity.
         top_channels_idx = st.session_state["top_channels_idx"]
         selected_proc_step = int(st.session_state["selected_proc_step"])
         latent_t = st.session_state["latent_t"]
+
+        if latent_t_filtered is None or top_channels_idx is None or len(top_channels_idx) == 0:
+            st.error("Step 3 results are missing. Please rerun Step 3.")
+            st.session_state["step4_done"] = False
+            return
 
         # Choose a single representative location within the radius
         latent_all_chosen = latent_t_filtered[selected_proc_step, 0, :]  # (latent_dim,)
@@ -832,11 +866,29 @@ Apply PCA to latent features in the selected region and project the learned comp
         selected_proc_step = int(st.session_state["selected_proc_step"])
         indices = st.session_state["selected_nodes"]
 
+        if indices is None or len(indices) == 0:
+            st.session_state["step5_done"] = False
+            st.error("No mesh nodes are selected. Please choose a region first and rerun Step 3.")
+            return
+
         # full_latent: (nodes, batch, latent_dim) at the selected processor step
         full_latent = st.session_state["latent_t"][selected_proc_step]
 
         # 1) Data to fit PCA on (selected region; all 512 channels)
         X = full_latent[indices, :]  # (n_selected_nodes, 512)
+
+        n_samples, n_features = X.shape
+        requested_n_pcs = int(st.session_state["n_pcs"])
+        max_valid_pcs = min(n_samples, n_features)
+
+        if requested_n_pcs > max_valid_pcs:
+            st.session_state["step5_done"] = False
+            st.error(
+                f"PCA cannot be computed with {requested_n_pcs} components for the current selection. "
+                f"You selected {n_samples} mesh nodes, so the maximum allowed number of PCs is {max_valid_pcs}. "
+                f"Please reduce 'Number of PCs (PCA)' or select a larger region."
+            )
+            return
 
         # 2) Number of PCs
         pca = PCA(n_components=int(st.session_state["n_pcs"]))
