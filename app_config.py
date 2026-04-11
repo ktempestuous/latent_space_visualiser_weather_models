@@ -13,7 +13,7 @@ from graphcast_structure_1 import (
     load_latent_gc_1,
 )
 
-CONFIG_PATH = Path("paths.json")
+CONFIG_PATH = Path("paths.example.json")
 
 def load_paths():
     if not CONFIG_PATH.exists():
