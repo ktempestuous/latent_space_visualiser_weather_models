@@ -116,6 +116,8 @@ Changes will automatically propagate through the app.
 
 This application requires external data, a sample of which is included at https://syncandshare.lrz.de/getlink/fiKpbQtFvZChe1yfM7PqaX/demo_data.
 
+Note that latent data is in a seperate zip file which needs to be unzipped before use.
+
 Required data:
 
 * **Latent data** (GraphCast outputs)
