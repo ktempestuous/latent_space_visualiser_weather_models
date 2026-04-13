@@ -15,6 +15,7 @@ Utility for:
 1 - make_circle_points - makes a circle of points on the sphere in degrees
 2 - mesh_features_to_latlon - converts Graphcast mesh node features to coordinates on mesh node grid
 3 - plot_global_data_with_overlay - plots 2D geospatial data (lat x lon) on a global Cartopy map with optional overlay points.
+3b - plot_global_residual_with_overlay - for residual. Colourbar centred at zero.
 4 - select_nodes_within_radius - select indices of mesh nodes within a given radius from a centre point
 5 - plot_global_overlay_only - plot data (e.g. latent channel value) on mesh nodes
 6 - apply_translator - apply translator to latent features for an individual timestep and processor step, for all mesh nodes and latent channels
@@ -142,21 +143,169 @@ def plot_global_data_with_overlay(
     ax.yaxis.set_major_formatter(LatitudeFormatter())
     ax.tick_params(labelsize=10)
 
-    # Colorbar
-    cbar = fig.colorbar(img, ax=ax, orientation="vertical", fraction=0.03, pad=0.04,shrink=0.8)
-    if cbar_label:
-        cbar.set_label(cbar_label)
+    cbar = fig.colorbar(img, ax=ax, orientation="vertical", fraction=0.03, pad=0.02, shrink=0.8)
+    cbar.ax.tick_params(labelsize=12, pad=4)
+    for tick in cbar.ax.get_yticklabels():
+            tick.set_rotation(30)
+            tick.set_ha("left")
+            tick.set_va("center")
+    cbar.locator = mticker.MaxNLocator(4)
+    cbar.update_ticks()
 
     # Overlay points, no label
     if overlay_lats is not None and overlay_lons is not None:
-        ax.scatter(
+
+    # outer white halo
+        ax.plot(
             overlay_lons,
             overlay_lats,
-            s=1,
-            c="black",
+            color="white",
+            linewidth=2,
             transform=ccrs.PlateCarree(),
-            alpha=0.75,
             zorder=5,
+        )
+
+        # inner black line
+        ax.plot(
+            overlay_lons,
+            overlay_lats,
+            color="black",
+            linewidth=1.25,
+            transform=ccrs.PlateCarree(),
+            zorder=6,
+        )
+
+    ax.set_title(title)
+    return fig
+
+
+# --------------------------------------------------- 
+# --- 3b. Plot gloabl era5 data with option to overlay at select lat/lon coordinates
+# ---------------------------------------------------
+
+def plot_global_residual_with_overlay(
+    data,
+    lon,
+    lat,
+    title="Map",
+    cmap="viridis",
+    cbar_label=None,
+    figsize=(10, 5),
+    overlay_lats=None,
+    overlay_lons=None,
+    dpi=100,
+):
+    """
+    Plot 2D geospatial data (lat x lon) on a global Cartopy map
+    with optional overlay points.
+
+    Args:
+        data (np.ndarray): 2D array (lat x lon)
+        lon (np.ndarray): 1D longitude array
+        lat (np.ndarray): 1D latitude array
+        title (str): plot title
+        cmap (str): colormap for base field
+        cbar_label (str): label for colorbar
+        figsize (tuple): figure size
+        overlay_lats (np.ndarray): optional latitudes for overlay points
+        overlay_lons (np.ndarray): optional longitudes for overlay points
+        dpi (int): figure resolution
+    """
+    # Create 2D lon/lat grid
+    lon2d, lat2d = np.meshgrid(lon, lat)
+
+    # Create figure with Cartopy projection
+    fig, ax = plt.subplots(
+        figsize=figsize,
+        subplot_kw={"projection": ccrs.PlateCarree()},
+        dpi=dpi,
+    )
+
+    ax.set_global()
+    ax.coastlines()
+    ax.add_feature(cfeature.BORDERS, linewidth=0.5)
+
+    vmax = np.max(np.abs(data))
+
+    if vmax == 0 or not np.isfinite(vmax):
+        norm = None
+        vmin, vmax = -1, 1
+    else:
+        norm = TwoSlopeNorm(vmin=-vmax, vcenter=0, vmax=vmax)
+        vmin, vmax = -vmax, vmax
+
+    # Base field using coordinate-aware plotting
+    img = ax.pcolormesh(
+        lon2d,
+        lat2d,
+        data,
+        cmap=cmap,
+        norm = norm,
+        transform=ccrs.PlateCarree(),
+        shading="nearest",
+        edgecolors=None,
+        linewidth=0,
+        antialiased=False,
+        rasterized=True,
+    )
+
+    # # Gridlines
+    # gl = ax.gridlines(
+    #     crs=ccrs.PlateCarree(),
+    #     draw_labels=True,
+    #     linewidth=0.5,
+    #     color="white",
+    #     alpha=1,
+    #     linestyle="--",
+    #     xlocs=np.arange(-180, 181, 30),
+    #     ylocs=np.arange(-90, 91, 30),
+    # )
+    # gl.top_labels = False
+    # gl.right_labels = False
+    # gl.xlabel_style = {"size": 10}
+    # gl.ylabel_style = {"size": 10}
+
+    # Add axis ticks and labels
+    ax.set_xticks(np.arange(-180, 181, 60), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
+    ax.xaxis.set_major_formatter(LongitudeFormatter())
+    ax.yaxis.set_major_formatter(LatitudeFormatter())
+    ax.tick_params(labelsize=10)
+
+    # Colorbar
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+
+    cbar = fig.colorbar(sm, ax=ax, orientation="vertical", fraction=0.03, pad=0.02, shrink=0.8)
+    cbar.ax.tick_params(labelsize=12, pad=4)
+    for tick in cbar.ax.get_yticklabels():
+            tick.set_rotation(30)
+            tick.set_ha("left")
+            tick.set_va("center")
+    cbar.set_ticks([-vmax, -vmax/2, 0, vmax/2, vmax])
+
+
+    # Overlay points, no label
+    if overlay_lats is not None and overlay_lons is not None:
+
+    # outer white halo
+        ax.plot(
+            overlay_lons,
+            overlay_lats,
+            color="white",
+            linewidth=2,
+            transform=ccrs.PlateCarree(),
+            zorder=5,
+        )
+
+        # inner black line
+        ax.plot(
+            overlay_lons,
+            overlay_lats,
+            color="black",
+            linewidth=1.5,
+            transform=ccrs.PlateCarree(),
+            zorder=6,
         )
 
     ax.set_title(title)
@@ -214,7 +363,7 @@ def plot_global_overlay_only(
     circle_lons=None,
     circle_lats=None,
     dpi=100,
-    plot_theme_mode="app theme",
+    cmap="PRGn",
 ):
     """
     Plot overlay values on a global Cartopy map without a background field.
@@ -240,17 +389,23 @@ def plot_global_overlay_only(
     ax.add_feature(cfeature.BORDERS, linewidth=0.5, zorder=6)
 
     # Gridlines
-    gl = ax.gridlines(
-        crs=ccrs.PlateCarree(),
-        draw_labels=True,
-        linewidth=0.5,
-        color="white",
-        linestyle="--",
-        xlocs=np.arange(-180, 181, 30),
-        ylocs=np.arange(-90, 91, 30),
-    )
-    gl.top_labels = False
-    gl.right_labels = False
+    # gl = ax.gridlines(
+    #     crs=ccrs.PlateCarree(),
+    #     draw_labels=True,
+    #     linewidth=0.5,
+    #     color="white",
+    #     linestyle="--",
+    #     xlocs=np.arange(-180, 181, 30),
+    #     ylocs=np.arange(-90, 91, 30),
+    # )
+    # gl.top_labels = False
+    # gl.right_labels = False
+        # Add axis ticks and labels
+    ax.set_xticks(np.arange(-180, 181, 60), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
+    ax.xaxis.set_major_formatter(LongitudeFormatter())
+    ax.yaxis.set_major_formatter(LatitudeFormatter())
+    ax.tick_params(labelsize=10)
 
     # --- Overlay only ---
     if overlay_lats is not None and overlay_lons is not None and overlay_values is not None:
@@ -264,19 +419,7 @@ def plot_global_overlay_only(
             vmax=max_abs,
         )
 
-        if plot_theme_mode == "app theme":
-            resolved_mode = st.session_state.get("theme_mode", "light")
-        elif plot_theme_mode in ["light", "dark"]:
-            resolved_mode = plot_theme_mode
-        else:
-            resolved_mode = None
-
-        if resolved_mode == "light":
-            cmap = plt.get_cmap("PRGn")
-        elif resolved_mode == "dark":
-            cmap = plt.get_cmap("PRGn")
-        else:
-            cmap = plt.get_cmap("coolwarm")
+        cmap = plt.get_cmap(cmap)
 
         colors = cmap(norm(overlay_values))
         colors[:, -1] = 1.0  # fully opaque
@@ -293,25 +436,45 @@ def plot_global_overlay_only(
         # Colorbar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
-        fig.colorbar(sm, ax=ax, orientation="vertical", fraction=0.03, pad=0.04)
+        
+        cbar = fig.colorbar(sm, ax=ax, orientation="vertical", fraction=0.03, pad=0.02)
+        cbar.ax.tick_params(labelsize=12, pad=4)
+        for tick in cbar.ax.get_yticklabels():
+            tick.set_rotation(30)
+            tick.set_ha("left")
+            tick.set_va("center")
+        cbar.set_ticks([-max_abs, -max_abs/2, 0, max_abs/2, max_abs])
 
     # --- Circle overlay ---
     if circle_lats is not None and circle_lons is not None:
         circle_lons = np.where(circle_lons > 180, circle_lons - 360, circle_lons)
 
-        ax.scatter(
+        # outer white halo
+        ax.plot(
             circle_lons,
             circle_lats,
-            s=1,
-            c="black",
-            alpha=0.75,
+            color="white",
+            linewidth=2,
+            alpha=1.0,
             transform=ccrs.PlateCarree(),
             zorder=6,
+        )
+
+        # inner black line
+        ax.plot(
+            circle_lons,
+            circle_lats,
+            color="black",
+            linewidth=1.5,
+            alpha=1.0,
+            transform=ccrs.PlateCarree(),
+            zorder=7,
         )
 
     ax.set_title(title)
 
     return fig
+
 
 # ---------------------------------------------------
 # --- 6. Apply translator to latent features for an individual timestep and processor step, for all mesh nodes and latent channels
