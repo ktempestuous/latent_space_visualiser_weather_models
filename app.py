@@ -53,22 +53,12 @@ st.markdown(
 # THEME SELECTION
 # ---------------------------------------------------------
 st.session_state.setdefault("theme_mode", "light")
-st.session_state.setdefault("plot_theme_mode", "app theme")
 
 theme_mode = st.sidebar.radio(
     "Theme",
     options=["light", "dark"],
     index=0 if st.session_state["theme_mode"] == "light" else 1,
     key="theme_mode",
-)
-
-plot_theme_mode = st.sidebar.selectbox(
-    "Plot overlay theme",
-    options=["app theme", "light", "dark", "default"],
-    index=["app theme", "light", "dark", "default"].index(
-        st.session_state.get("plot_theme_mode", "app theme")
-    ),
-    key="plot_theme_mode",
 )
 
 current_theme = THEMES[st.session_state["theme_mode"]]
@@ -441,10 +431,9 @@ if st.session_state.get("era5_ready", False):
     # Plot
     col_plot, col_plot2 = st.columns([col_1_width, col_1_width])
     with col_plot:
-        st.subheader("ERA5 at forecast initialisation time (fit)")
-        title = f"{selected_var} at {fit_time.strftime('%Y-%m-%d %H:%M UTC')}"
+        title = f"f(t_init) | ERA5 ({selected_var}) @ forecast initialisation ({fit_time.strftime('%Y-%m-%d %H:%M UTC')})"
         if selected_level_value is not None:
-            title += f" ({level_dim}={selected_level_value})"
+            title += f", for {level_dim}={selected_level_value}"
 
         fig_era = plot_global_data_with_overlay(
             data=data_fit.values,
@@ -461,16 +450,16 @@ if st.session_state.get("era5_ready", False):
         st.pyplot(fig_era, clear_figure=False)
 
     with col_plot2:
-        st.subheader("ERA5 Residual")
-        title_res = f"{selected_var} residual (fit+6h minus fit) at {fit_time.strftime('%Y-%m-%d %H:%M UTC')}"
+        title_res = f"f(t) - f(t_init) | Residual of {selected_var}"
         if selected_level_value is not None:
-            title_res += f" ({level_dim}={selected_level_value})"
+            title_res += f", for {level_dim}={selected_level_value}"
 
-        fig_res = plot_global_data_with_overlay(
+        fig_res = plot_global_residual_with_overlay(
             data=data_residual,
             lon=ds_pair["lon"].values,
             lat=ds_pair["lat"].values,
             title=title_res,
+            cmap="RdBu_r",
             cbar_label=selected_var,
             figsize=figsize,
             dpi=dpi,
@@ -552,7 +541,6 @@ def _compute_step3_results():
 
 def _render_step3_outputs():
     """Render Step 3 plots/results from session_state (no recompute)."""
-    plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme")
     indices = st.session_state.get("selected_nodes", None)
     coords_df = st.session_state.get("selected_coords_df", None)
     latent_out = st.session_state.get("latent_t", None)
@@ -653,7 +641,7 @@ def _render_step3_outputs():
                 overlay_values=latent_out[selected_proc_step, :, ch],
                 circle_lons=circ_lons,
                 circle_lats=circ_lats,
-                plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme"),
+                cmap="PuOr_r"
             )
             st.pyplot(fig_latents)
             st.session_state["export_figures"][f"fig_latents_{i}"] = fig_latents
@@ -783,7 +771,6 @@ Compare the selected region with the rest of the globe using cosine similarity.
             st.session_state["step4_done"] = True
 
     if st.session_state.get("step4_done", False):
-        plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme")
         ds_pair = st.session_state["ds_pair"]
         data_fit = st.session_state["data_fit"]
         selected_var = st.session_state["selected_var"]  # owned by the widget key
@@ -801,7 +788,7 @@ Compare the selected region with the rest of the globe using cosine similarity.
                 overlay_values=cosine_sims_topN,
                 circle_lons=circ_lons,
                 circle_lats=circ_lats,
-                plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme"),
+                cmap="PRGn"
             )
             st.pyplot(fig_S_c_topN)
 
@@ -813,7 +800,7 @@ Compare the selected region with the rest of the globe using cosine similarity.
                 overlay_values=cosine_sims_all,
                 circle_lons=circ_lons,
                 circle_lats=circ_lats,
-                plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme"),
+                cmap="PRGn"
             )
             st.pyplot(fig_S_c)
         # save plots to session state for later:    
@@ -937,9 +924,8 @@ Apply PCA to latent features in the selected region and project the learned comp
         df_explained = st.session_state.get("df_explained_variance")
         if df_explained is not None:
             st.markdown("### Explained variance ratio for each principal component")
-            st.dataframe(df_explained, use_container_width=True)
+            st.dataframe(df_explained, width="stretch")
         
-        plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme")
         ds_pair = st.session_state["ds_pair"]
         data_fit = st.session_state["data_fit"]
         selected_var = st.session_state["selected_var"]
@@ -962,7 +948,7 @@ Apply PCA to latent features in the selected region and project the learned comp
                     overlay_values=overlay_pc,
                     circle_lons=circ_lons,
                     circle_lats=circ_lats,
-                    plot_theme_mode=st.session_state.get("plot_theme_mode", "app theme"),
+                    cmap="BrBG_r",
                 )
                 st.pyplot(fig_pca)
                 st.session_state["export_figures"][f"fig_pca_{pc_idx}"] = fig_pca
@@ -994,7 +980,7 @@ Apply PCA to latent features in the selected region and project the learned comp
         st.session_state["df_pca_loadings"] = df_pca_loadings
         st.markdown("### Top contributing latent channels per principal component")
         st.caption("Value in parenthesis is value of principle axis in feature space")
-        st.dataframe(df_pca_loadings, use_container_width=True)
+        st.dataframe(df_pca_loadings, width="stretch")
 
         # output plots created
         _collect_export_metadata()
