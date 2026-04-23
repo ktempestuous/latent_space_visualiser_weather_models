@@ -18,7 +18,7 @@ The workflow includes:
 4. Performing cosine similarity analysis
 5. Performing principal component analysis (PCA)
 
-This code accompanies the results presented in the associated research paper.
+This code accompanies the results presented in the associated research paper: https://arxiv.org/abs/2604.20467
 
 ---
 ## Requirements
