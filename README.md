@@ -18,7 +18,7 @@ The workflow includes:
 4. Performing cosine similarity analysis
 5. Performing principal component analysis (PCA)
 
-This code accompanies the results presented in the associated research paper: https://arxiv.org/abs/2604.20467
+This code accompanies the results presented in the associated conference paper: https://link.springer.com/chapter/10.1007/978-3-032-29915-4_10 (arxiv: https://arxiv.org/abs/2604.20467)
 
 ---
 ## Requirements
@@ -264,6 +264,6 @@ The application allows exporting results as a PDF report, including:
 If you use this code, please cite:
 
 ```
-Tempest, K. I., Beylich, M., & Craig, G. C. (2026). Mechanistic interpretability tool for AI weather models. In Proceedings of the 26th International Conference on Computational Science (ICCS 2026), Workshop on Machine Learning and Data Assimilation for Dynamical Systems. Springer Lecture Notes in Computer Science (LNCS), Hamburg, Germany.
+Tempest, K.I., Beylich, M., Craig, G.C. (2026). Mechanistic Interpretability Tool for AI Weather Models. In: Paszynski, M., Barnard, A.S., Zhang, Y.J. (eds) Computational Science – ICCS 2026 Workshops. ICCS 2026. Lecture Notes in Computer Science, vol 16788. Springer, Cham. https://doi.org/10.1007/978-3-032-29915-4_10
 ```
 
